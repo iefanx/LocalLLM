@@ -6,7 +6,7 @@ import { getClientConfig } from "./config/client";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "WebLLM Chat",
+  title: "Aithena",
   description:
     "Chat with AI large language models running natively in your browser. Enjoy private, server-free, seamless AI conversations.",
   viewport: {
