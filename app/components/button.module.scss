@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 12px;
 
   cursor: pointer;
   transition: all 0.3s ease;
@@ -67,7 +67,7 @@
 
 @media only screen and (max-width: 600px) {
   .icon-button {
-    padding: 4px; // Smaller padding
+    padding: 12px; // Smaller padding
     
     // Scale down icons for mobile
     .icon-button-icon {

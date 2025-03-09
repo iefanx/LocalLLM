@@ -71,6 +71,7 @@
     width: var(--icon-width);
     overflow: hidden;
 
+
     &:not(:last-child) {
       margin-right: 5px;
     }
@@ -713,15 +714,7 @@
 
 // Mobile optimizations for better space utilization
 @media only screen and (max-width: 600px) {
-  .chat {
-    padding: 0; // Maximize screen usage
-  }
-
-  .chat-body {
-    padding: 8px;
-    padding-bottom: 16px;
-  }
-  
+ 
   .chat-message-container {
     max-width: 100%; // Allow messages to use more width on mobile
   }
@@ -745,16 +738,16 @@
   }
   
   .chat-input-panel {
-    padding: 8px;
-    padding-bottom: 12px;
+
+    padding-bottom: 18px;
   }
   
   .chat-input {
-    padding: 4px 35px 4px 4px; // Smaller padding
+    padding: 10px 35px 10px 10px; // Smaller padding
   }
   
   .chat-input-send {
-    padding: 5px 10px;
+    padding: 10px 10px 10px 10px;
     transform: scale(0.9);
     bottom: 8px;
     right: 8px;
@@ -768,7 +761,7 @@
       font-size: 9px;
       
       &.full-width {
-        max-width: 80px; // Limit width for better fit
+        max-width: 100%; // Limit width for better fit
       }
       
       .icon {
@@ -802,6 +795,7 @@
       font-size: 10px;
       padding: 3px 6px;
       height: 12px;
+      display: none;
     }
   }
 }
