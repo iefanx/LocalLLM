@@ -65,7 +65,7 @@ const en = {
       }
       return inputHints + ", / to search prompts, : to use commands";
     },
-    Send: "Send",
+    Send: "",
     Config: {
       Reset: "Reset to Default",
       SaveAs: "Save Prompts",
@@ -379,7 +379,7 @@ const en = {
 
   ServiceWorker: {
     Error:
-      "The WebLLM worker has lost connection. Please close all tabs of WebLLM Chat and try opening WebLLM Chat again.",
+      "The WebLLM worker has lost connection. Please close all tabs of aithena and try opening aithena again.",
   },
   MlcLLMConnect: {
     Title: "Connect to MLC-LLM API Endpoint",

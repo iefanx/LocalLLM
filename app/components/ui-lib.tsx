@@ -321,16 +321,25 @@ export function PasswordInput(props: HTMLProps<HTMLInputElement>) {
   );
 }
 
-export function Select(
-  props: React.DetailedHTMLProps<
-    React.SelectHTMLAttributes<HTMLSelectElement>,
-    HTMLSelectElement
-  >,
-) {
-  const { className, children, ...otherProps } = props;
+export function Select({
+  value,
+  onChange,
+  children,
+  ...otherProps
+}: React.DetailedHTMLProps<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  HTMLSelectElement
+>) {
   return (
-    <div className={`${styles["select-with-icon"]} ${className}`}>
-      <select className={styles["select-with-icon-select"]} {...otherProps}>
+    <div
+      className={`${styles["select-with-icon"]} ${otherProps.className || ""}`}
+    >
+      <select
+        className={styles["select-with-icon-select"]}
+        value={value}
+        onChange={onChange}
+        {...otherProps}
+      >
         {children}
       </select>
       <DownIcon className={styles["select-with-icon-icon"]} />

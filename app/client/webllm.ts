@@ -36,37 +36,49 @@ type WebLLMHandler = ServiceWorkerWebLLMHandler | WebWorkerWebLLMHandler;
 export class WebLLMApi implements LLMApi {
   private llmConfig?: LLMConfig;
   private initialized = false;
-  webllm: WebLLMHandler;
+  webllm: WebLLMHandler | null;
 
   constructor(
     type: "serviceWorker" | "webWorker",
     logLevel: LogLevel = "WARN",
   ) {
-    const engineConfig = {
-      appConfig: {
-        ...prebuiltAppConfig,
-        useIndexedDBCache: this.llmConfig?.cache === "index_db",
-      },
-      logLevel,
-    };
+    // Check if we're in browser environment
+    const isBrowser =
+      typeof window !== "undefined" && typeof Worker !== "undefined";
 
-    if (type === "serviceWorker") {
-      log.info("Create ServiceWorkerMLCEngine");
-      this.webllm = {
-        type: "serviceWorker",
-        engine: new ServiceWorkerMLCEngine(engineConfig, KEEP_ALIVE_INTERVAL),
+    if (isBrowser) {
+      const engineConfig = {
+        appConfig: {
+          ...prebuiltAppConfig,
+          useIndexedDBCache: this.llmConfig?.cache === "index_db",
+        },
+        logLevel,
       };
+
+      if (type === "serviceWorker") {
+        log.info("Create ServiceWorkerMLCEngine");
+        this.webllm = {
+          type: "serviceWorker",
+          engine: new ServiceWorkerMLCEngine(engineConfig, KEEP_ALIVE_INTERVAL),
+        };
+      } else {
+        log.info("Create WebWorkerMLCEngine");
+        this.webllm = {
+          type: "webWorker",
+          engine: new WebWorkerMLCEngine(
+            new Worker(new URL("../worker/web-worker.ts", import.meta.url), {
+              type: "module",
+            }),
+            engineConfig,
+          ),
+        };
+      }
     } else {
-      log.info("Create WebWorkerMLCEngine");
-      this.webllm = {
-        type: "webWorker",
-        engine: new WebWorkerMLCEngine(
-          new Worker(new URL("../worker/web-worker.ts", import.meta.url), {
-            type: "module",
-          }),
-          engineConfig,
-        ),
-      };
+      // Create a placeholder/mock engine for SSR
+      this.webllm = null;
+      console.log(
+        "WebLLM engine initialization skipped during server-side rendering",
+      );
     }
   }
 
@@ -74,10 +86,12 @@ export class WebLLMApi implements LLMApi {
     if (!this.llmConfig) {
       throw Error("llmConfig is undefined");
     }
-    this.webllm.engine.setInitProgressCallback((report: InitProgressReport) => {
-      onUpdate?.(report.text, report.text);
-    });
-    await this.webllm.engine.reload(this.llmConfig.model, this.llmConfig);
+    this.webllm?.engine.setInitProgressCallback(
+      (report: InitProgressReport) => {
+        onUpdate?.(report.text, report.text);
+      },
+    );
+    await this.webllm?.engine.reload(this.llmConfig.model, this.llmConfig);
     this.initialized = true;
   }
 
@@ -139,7 +153,7 @@ export class WebLLMApi implements LLMApi {
   }
 
   async abort() {
-    await this.webllm.engine?.interruptGenerate();
+    await this.webllm?.engine?.interruptGenerate();
   }
 
   private isDifferentConfig(config: LLMConfig): boolean {
@@ -184,7 +198,7 @@ export class WebLLMApi implements LLMApi {
       usage?: CompletionUsage,
     ) => void,
   ) {
-    const completion = await this.webllm.engine.chatCompletion({
+    const completion = await this.webllm?.engine.chatCompletion({
       stream: stream,
       messages: messages as ChatCompletionMessageParam[],
       ...(stream ? { stream_options: { include_usage: true } } : {}),

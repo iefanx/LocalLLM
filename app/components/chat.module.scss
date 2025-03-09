@@ -58,16 +58,16 @@
   .chat-input-action {
     display: inline-flex;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 10px;
     background-color: var(--white);
     color: var(--black);
     border: var(--border-in-light);
-    padding: 4px 10px;
+    padding: 4px 6px;
     animation: slide-in ease 0.3s;
     box-shadow: var(--card-shadow);
     transition: width ease 0.3s;
     align-items: center;
-    height: 16px;
+    height: 12px;
     width: var(--icon-width);
     overflow: hidden;
 
@@ -304,8 +304,8 @@
   flex: 1;
   overflow: auto;
   overflow-x: hidden;
-  padding: 20px;
-  padding-bottom: 40px;
+  padding: 10px;
+  padding-bottom: 10px;
   position: relative;
   overscroll-behavior: none;
 }
@@ -344,6 +344,7 @@
 @media only screen and (max-width: 600px) {
   .chat-body-title {
     text-align: center;
+
   }
 }
 
@@ -366,10 +367,10 @@
 }
 
 .chat-message-header {
-  margin-top: 20px;
+  margin-top: 2px;
   display: flex;
   align-items: center;
-  width: 100%;
+
 
   .chat-message-actions {
     display: flex;
@@ -439,10 +440,10 @@
 .chat-message-item {
   box-sizing: border-box;
   max-width: 100%;
-  margin-top: 10px;
+  margin-top: 6px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.05);
-  padding: 10px;
+  padding: 6px;
   font-size: 14px;
   user-select: text;
   word-break: break-word;
@@ -452,17 +453,17 @@
 }
 
 .chat-message-item-image {
-  width: 100%;
-  margin-top: 10px;
+
+  margin-top: 4px;
 }
 
 .chat-message-item-images {
-  width: 100%;
+
   display: grid;
   justify-content: left;
   grid-gap: 10px;
   grid-template-columns: repeat(var(--image-count), auto);
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .chat-message-item-image-multi {
@@ -548,7 +549,7 @@
 .chat-input-panel {
   position: relative;
   width: 100%;
-  padding: 20px;
+  padding: 10px;
   padding-top: 10px;
   box-sizing: border-box;
   flex-direction: column;
@@ -651,11 +652,11 @@
   background-color: var(--white);
   color: var(--black);
   font-family: inherit;
-  padding: 10px 90px 10px 14px;
+  padding: 5px 20px 5px 5px;
   resize: none;
   outline: none;
   box-sizing: border-box;
-  min-height: 68px;
+  min-height: auto;
 }
 
 @media only screen and (max-width: 600px) {

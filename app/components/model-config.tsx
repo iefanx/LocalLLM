@@ -70,10 +70,15 @@ export function ModelConfigList() {
                 // Prevent the dropdown list from opening
                 e.preventDefault();
               }}
+              onChange={(e) => {
+                config.selectModel(e.target.value);
+              }}
             >
               {models.map((v, i) => (
                 <React.Fragment key={i}>
-                  {i > 0 && v.family !== models[i - 1].family && <hr />}
+                  {i > 0 && v.family !== models[i - 1].family && (
+                    <optgroup label={v.family || "Models"} />
+                  )}
                   <option value={v.name}>
                     {v.name}
                     {v.provider ? ` (${v.provider})` : ""}
@@ -83,7 +88,6 @@ export function ModelConfigList() {
             </Select>
           </ListItem>
 
-          {/* New setting item for LLM model context window length */}
           <ListItem
             title={Locale.Settings.ContextWindowLength.Title}
             subTitle={Locale.Settings.ContextWindowLength.SubTitle}
@@ -234,7 +238,9 @@ export function ModelConfigList() {
             >
               {models.map((v, i) => (
                 <React.Fragment key={i}>
-                  {i > 0 && v.family !== models[i - 1].family && <hr />}
+                  {i > 0 && v.family !== models[i - 1].family && (
+                    <optgroup label={v.family || "Models"} />
+                  )}
                   <option value={v.name}>
                     {v.name}
                     {v.provider ? ` (${v.provider})` : ""}
