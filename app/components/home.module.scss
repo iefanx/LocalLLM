@@ -51,7 +51,7 @@
 
   .sidebar-header-bar {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 
     .sidebar-bar-button {
       flex-grow: 1;
@@ -135,8 +135,8 @@
 
 .sidebar-header {
   position: relative;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -169,7 +169,7 @@
 }
 
 .sidebar-sub-title {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   animation: slide-in ease 0.3s;
 }
@@ -181,10 +181,10 @@
 }
 
 .chat-item {
-  padding: 10px 14px;
+  padding: 8px 10px;
   background-color: var(--white);
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   box-shadow: var(--card-shadow);
   transition: background-color 0.3s ease;
   cursor: pointer;
@@ -203,7 +203,7 @@
 }
 
 .chat-item-title {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: bolder;
   display: block;
   width: calc(100% - 15px);
@@ -235,7 +235,7 @@
   display: flex;
   justify-content: space-between;
   color: var(--light-gray);
-  font-size: 12px;
+  font-size: 10px;
   margin-top: 8px;
   animation: slide-in ease 0.3s;
 }
@@ -271,13 +271,15 @@
     .sidebar-bar-button {
       &:not(:last-child) {
         margin-right: 0;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
+    
+
       }
     }
   }
 
   .chat-item {
-    padding: 0;
+    padding: 8px 10px;
     min-height: 50px;
     display: flex;
     justify-content: center;
@@ -312,7 +314,7 @@
     }
 
     .chat-item-narrow-count {
-      font-size: 24px;
+      font-size: 16px;
       font-weight: bolder;
       text-align: center;
       color: var(--primary);

@@ -231,6 +231,55 @@
     .modal-content {
       max-height: 50vh;
     }
+    
+    .modal-header {
+      padding: 12px;
+      
+      .modal-title {
+        font-size: 14px;
+      }
+    }
+    
+    .modal-content {
+      padding: 12px;
+    }
+    
+    .modal-footer {
+      padding: 12px;
+      
+      .modal-action {
+        transform: scale(0.9);
+      }
+    }
+  }
+  
+  .list-item {
+    padding: 8px 12px;
+    min-height: 32px;
+    
+    .list-header {
+      .list-item-title {
+        font-size: 12px;
+      }
+      
+      .list-item-sub-title {
+        font-size: 10px;
+      }
+    }
+  }
+  
+  .select-with-icon {
+    .select-with-icon-select {
+      padding: 6px 30px 6px 8px;
+      font-size: 12px;
+    }
+  }
+  
+  .toast-container {
+    .toast-content {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
   }
 }
 

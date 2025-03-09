@@ -523,7 +523,7 @@
   padding-right: 10px;
   z-index: 1;
   display: flex;
-  justify-content: end;
+  justify-content: flex-end; // Changed from 'end' to 'flex-end' for better browser compatibility
   align-items: center;
   flex-wrap: wrap;
   gap: 0 6px;
@@ -708,5 +708,100 @@
     align-items: center;
     cursor: pointer;
     pointer-events: all;
+  }
+}
+
+// Mobile optimizations for better space utilization
+@media only screen and (max-width: 600px) {
+  .chat {
+    padding: 0; // Maximize screen usage
+  }
+
+  .chat-body {
+    padding: 8px;
+    padding-bottom: 16px;
+  }
+  
+  .chat-message-container {
+    max-width: 100%; // Allow messages to use more width on mobile
+  }
+  
+  .chat-message-item {
+    padding: 6px;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  
+  .chat-message-header {
+    margin-top: 10px; // Reduced top margin
+  }
+
+  .chat-message-role-name {
+    font-size: 12px; // Smaller font for role names
+  }
+  
+  .chat-message-actions {
+    transform: scale(0.8); // Make action buttons smaller
+  }
+  
+  .chat-input-panel {
+    padding: 8px;
+    padding-bottom: 12px;
+  }
+  
+  .chat-input {
+    padding: 4px 35px 4px 4px; // Smaller padding
+  }
+  
+  .chat-input-send {
+    padding: 5px 10px;
+    transform: scale(0.9);
+    bottom: 8px;
+    right: 8px;
+  }
+  
+  // Making buttons more compact on mobile
+  .chat-input-actions {
+    .chat-input-action {
+      height: 10px; // Smaller height
+      padding: 3px 5px;
+      font-size: 9px;
+      
+      &.full-width {
+        max-width: 80px; // Limit width for better fit
+      }
+      
+      .icon {
+        transform: scale(0.8);
+      }
+    }
+  }
+  
+  // Make attached images smaller to reduce space
+  .attach-image {
+    width: 48px;
+    height: 48px;
+    margin-right: 6px;
+  }
+  
+  // Window header adjustments for mobile
+  .window-header {
+    padding: 6px;
+    
+    .window-actions {
+      .window-action-button {
+        transform: scale(0.8);
+        margin-left: 5px;
+      }
+    }
+  }
+  
+  // Chat action context (back button) optimization
+  .chat-action-context {
+    .chat-input-action {
+      font-size: 10px;
+      padding: 3px 6px;
+      height: 12px;
+    }
   }
 }
