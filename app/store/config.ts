@@ -1,4 +1,4 @@
-import { LogLevel } from "@mlc-ai/web-llm";
+import { LogLevel, prebuiltAppConfig } from "@mlc-ai/web-llm";
 import { ModelRecord } from "../client/api";
 import {
   DEFAULT_INPUT_TEMPLATE,
@@ -39,6 +39,7 @@ export type ModelConfig = {
 
   // Chat configs
   temperature: number;
+  context_window_size?: number;
   top_p: number;
   max_tokens: number;
   presence_penalty: number;
@@ -77,18 +78,23 @@ export type ConfigType = {
   modelConfig: ModelConfig;
 };
 
+const DEFAULT_MODEL = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
+
 const DEFAULT_MODEL_CONFIG: ModelConfig = {
-  model: DEFAULT_MODELS[0].name,
+  model: DEFAULT_MODEL,
 
   // Chat configs
   temperature: 1.0,
   top_p: 1,
+  context_window_size:
+    prebuiltAppConfig.model_list.find((m) => m.model_id === DEFAULT_MODEL)
+      ?.overrides?.context_window_size ?? 4096,
   max_tokens: 4000,
   presence_penalty: 0,
   frequency_penalty: 0,
 
   // Use recommended config to overwrite above parameters
-  ...DEFAULT_MODELS[0].recommended_config,
+  ...DEFAULT_MODELS.find((m) => m.name === DEFAULT_MODEL)!.recommended_config,
 
   mlc_endpoint: "",
 };
@@ -142,7 +148,10 @@ export const ModalConfigValidator = {
     return x as Model;
   },
   max_tokens(x: number) {
-    return limitNumber(x, 0, 512000, 1024);
+    return limitNumber(x, 0, 131072, 1024);
+  },
+  context_window_size(x: number) {
+    return limitNumber(x, 0, 131072, 1024);
   },
   presence_penalty(x: number) {
     return limitNumber(x, -2, 2, 0);
@@ -208,27 +217,13 @@ export const useAppConfig = createPersistStore(
   }),
   {
     name: StoreKey.Config,
-    version: 0.53,
+    version: 0.62,
     migrate: (persistedState, version) => {
-      if (version < 0.53) {
+      if (version < 0.62) {
         return {
           ...DEFAULT_CONFIG,
           ...(persistedState as any),
           models: DEFAULT_MODELS as any as ModelRecord[],
-
-          modelConfig: {
-            model: DEFAULT_MODELS[0].name,
-
-            // Chat configs
-            temperature: 1.0,
-            top_p: 1,
-            max_tokens: 4000,
-            presence_penalty: 0,
-            frequency_penalty: 0,
-
-            // Use recommended config to overwrite above parameters
-            ...DEFAULT_MODELS[0].recommended_config,
-          },
         };
       }
       return persistedState;

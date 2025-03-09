@@ -28,7 +28,7 @@ const en = {
       Retry: "Retry",
       Delete: "Delete",
       Edit: "Edit",
-      EditPrompts: "Edit Prompts",
+      EditConversation: "Edit Conversation",
     },
     Commands: {
       new: "Start a new chat",
@@ -193,7 +193,7 @@ const en = {
         Search: "Search Prompts",
       },
       EditModal: {
-        Title: "Edit Prompt",
+        Title: "Edit Conversation",
       },
     },
     HistoryCount: {
@@ -230,7 +230,10 @@ const en = {
         SubTitle: "Connect to the API",
       },
     },
-
+    ContextWindowLength: {
+      Title: "Context Window Length",
+      SubTitle: "The maximum number of tokens for the context window",
+    },
     Temperature: {
       Title: "Temperature",
       SubTitle: "A larger value makes the more random output",
@@ -344,7 +347,10 @@ const en = {
     NotShow: "Never Show Again",
     ConfirmNoShow: "Confirm to disable? You can enable it in settings later.",
   },
-
+  ModelSelect: {
+    Title: "Model Selection",
+    SearchPlaceholder: "Search model...",
+  },
   UI: {
     Confirm: "Confirm",
     Cancel: "Cancel",

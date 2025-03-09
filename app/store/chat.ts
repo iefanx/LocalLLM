@@ -16,6 +16,7 @@ import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
 import { ChatCompletionFinishReason, CompletionUsage } from "@mlc-ai/web-llm";
+import { ChatImage } from "../typing";
 
 export type ChatMessage = RequestMessage & {
   date: string;
@@ -279,7 +280,7 @@ export const useChatStore = createPersistStore(
         get().summarizeSession(llm);
       },
 
-      onUserInput(content: string, llm: LLMApi, attachImages?: string[]) {
+      onUserInput(content: string, llm: LLMApi, attachImages?: ChatImage[]) {
         const modelConfig = useAppConfig.getState().modelConfig;
 
         const userContent = fillTemplateWith(content, useAppConfig.getState());
@@ -295,11 +296,15 @@ export const useChatStore = createPersistStore(
             },
           ];
           mContent = mContent.concat(
-            attachImages.map((url) => {
+            attachImages.map((imageData) => {
               return {
                 type: "image_url",
                 image_url: {
-                  url: url,
+                  url: imageData.url,
+                },
+                dimension: {
+                  width: imageData.width,
+                  height: imageData.height,
                 },
               };
             }),
@@ -547,7 +552,7 @@ export const useChatStore = createPersistStore(
 
         const historyMsgLength = countMessages(toBeSummarizedMsgs);
 
-        if (historyMsgLength > modelConfig?.max_tokens ?? 4000) {
+        if (historyMsgLength > (modelConfig?.max_tokens ?? 4000)) {
           const n = toBeSummarizedMsgs.length;
           toBeSummarizedMsgs = toBeSummarizedMsgs.slice(
             Math.max(0, n - config.historyMessageCount),
