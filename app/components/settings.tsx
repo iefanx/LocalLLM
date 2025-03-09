@@ -552,7 +552,7 @@ export function Settings() {
                   ([_, value]) => value === parseInt(e.target.value),
                 )?.[0] as LogLevel;
 
-                webllm?.webllm.engine.setLogLevel(logLevel);
+                webllm?.webllm?.engine.setLogLevel(logLevel);
                 log.setLevel(logLevel);
                 updateConfig((config) => (config.logLevel = logLevel));
               }}
