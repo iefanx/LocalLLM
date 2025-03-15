@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "cp src/gh-config.js src/app-config.js && parcel src/index.html  --port 8883",
-    "build": "cp src/gh-config.js src/app-config.js && parcel build src/index.html --dist-dir lib --no-content-hash"
+    "start": "parcel index.html --port 8888",
+    "build": "cp src/gh-config.js src/app-config.js && parcel build index.html --dist-dir lib --no-content-hash",
+    "vercel-build": "cp src/gh-config.js src/app-config.js && parcel build index.html --dist-dir lib --no-content-hash"
   },
   "devDependencies": {
     "buffer": "^5.7.1",

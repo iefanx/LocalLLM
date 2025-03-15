@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebLLM Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar toggle button -->
+        <div class="chatui-header">
+            <div class="header-left">
+                <button id="sidebar-toggle" aria-label="Toggle sidebar">
+                    <i data-lucide="menu"></i>
+                </button>
+                <!-- Add new chat button next to menu -->
+                <button id="chatui-new-chat-btn" class="new-chat-btn" title="Start new chat">
+                    <i data-lucide="plus"></i>
+                </button>
+            </div>
+            <div class="header-right">
+                <!-- Reset/erase button -->
+                <button id="chatui-reset-btn" title="Clear current chat">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Rest of the HTML structure -->
+        <!-- ...existing code... -->
+    </div>
+    <script type="module" src="simple_chat.js"></script>
+</body>
+</html>

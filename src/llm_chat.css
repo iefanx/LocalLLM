@@ -46,11 +46,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--compact-padding);
-  padding: var(--compact-padding);
+  margin-bottom: 0.1rem; /* Reduced from var(--compact-padding) */
+  padding: 0.0rem 0.5rem; /* Significantly reduced padding */
   background-color: var(--secondary-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
+  min-height: auto; /* Set a smaller minimum height */
 }
 
 #chatui-select {
@@ -181,14 +182,16 @@ body {
 }
 
 .chatui-reset-btn,
-.chatui-send-btn {
-  margin-left: 0.5rem; /* Reduced margin */
+.chatui-send-btn,
+.new-chat-btn,
+.menu-btn {
+  margin-left: 0.3rem; /* Reduced margin */
   background-color: var(--tertiary-bg);
   color: var(--text-color);
   font-weight: bold;
   cursor: pointer;
-  width: 36px; /* Smaller buttons */
-  height: 36px; /* Smaller buttons */
+  width: 28px; /* Smaller buttons */
+  height: 28px; /* Smaller buttons */
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -199,21 +202,28 @@ body {
 }
 
 .chatui-reset-btn svg,
-.chatui-send-btn svg {
-  width: 18px; /* Smaller icons */
-  height: 18px;
+.chatui-send-btn svg,
+.new-chat-btn svg,
+.menu-btn svg {
+  width: 14px; /* Smaller icons */
+  height: 14px;
   color: var(--text-color);
   transition: var(--transition);
 }
 
 .chatui-reset-btn:hover,
-.chatui-send-btn:hover {
+.chatui-send-btn:hover,
+.new-chat-btn:hover,
+.menu-btn:hover {
   background-color: var(--accent-color);
   transform: translateY(-2px);
 }
 
 .chatui-reset-btn:hover svg,
-.chatui-send-btn:hover svg {
+.chatui-send-btn:hover svg
+.new-chat-btn:hover svg,
+.menu-btn:hover svg {
+
   color: white; /* Use color instead of stroke */
 }
 
@@ -230,7 +240,7 @@ body {
   }
   
   .chatui-select-wrapper {
-    padding: 0.3rem 0.5rem;
+    padding: 0.2rem 0.6rem;
   }
   
   .chatui-reset-btn {
@@ -307,15 +317,15 @@ body {
   background-color: transparent;
   color: var(--text-color);
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 28px; /* Smaller size */
+  height: 28px; /* Smaller size */
   border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
-  margin-right: 8px;
+  margin-right: 4px; /* Reduced margin */
 }
 
 .menu-btn:hover {
@@ -348,7 +358,7 @@ body {
   align-items: center;
   padding: 0.8rem var(--compact-padding);
   border-bottom: 1px solid var(--tertiary-bg);
-  margin-bottom: 1rem;
+
 }
 
 .sidebar-header h3 {
@@ -404,7 +414,7 @@ body {
 
 .sidebar-section h4 {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var (--text-secondary);
   margin-bottom: 0.5rem;
 }
 

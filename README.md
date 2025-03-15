@@ -33,9 +33,9 @@ Due to the differences in command-line tools between Unix/Linux and Windows syst
    - In the `scripts` section of your `package.json`, replace Unix-style `cp` commands with our new Node.js script. For example:
      ```json
      "scripts": {
-         "start": "node copy-config.js && parcel src/index.html --port 8888",
-         "mlc-local": "node copy-config.js && parcel src/index.html --port 8888",
-         "build": "node copy-config.js && parcel build src/index.html --dist-dir lib --no-content-hash"
+         "start": "node copy-config.js && parcel src/llm_chat.html --port 8888",
+         "mlc-local": "node copy-config.js && parcel src/llm_chat.html --port 8888",
+         "build": "node copy-config.js && parcel build src/llm_chat.html --dist-dir lib --no-content-hash"
      },
      ```
 

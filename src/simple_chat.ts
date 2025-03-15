@@ -1,7 +1,7 @@
 import appConfig from "./app-config";
 import * as webllm from "@mlc-ai/web-llm";
 import { refreshIcons } from "./icons"; // Import the icon refresh function
-import { addSession, getSessions, loadSession as loadSessionFromDB, updateSession } from "./chat-session-db";
+import { addSession, getSessions, loadSession as loadSessionFromDB, updateSession, getLatestSession, deleteSession, deleteAllSessions } from "./chat-session-db";
 
 // Constants
 const SELECTED_MODEL_KEY = "web-llm-selected-model";
@@ -33,13 +33,13 @@ class ChatUI {
   private readonly uiChatInfoLabel: HTMLLabelElement;
   private readonly engine: webllm.MLCEngineInterface | webllm.WebWorkerMLCEngine;
   private readonly config: webllm.AppConfig = appConfig;
+  private readonly uiSendButton: HTMLButtonElement;  // New property for send/stop button
   
-  private selectedModel: string = "";
+  private selectedModel: string = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"; // Default model
   private chatLoaded = false;
   private requestInProgress = false;
   private chatHistory: webllm.ChatCompletionMessageParam[] = [];
   
-  private readonly uiSidebarModelSelect: HTMLSelectElement;
   private currentSessionId: number | null = null;
   
   // We use a request chain to ensure that all requests to chat are sequentialized
@@ -53,12 +53,7 @@ class ChatUI {
     this.uiChat = getElementAndCheck("chatui-chat");
     this.uiChatInput = getElementAndCheck<HTMLInputElement>("chatui-input");
     this.uiChatInfoLabel = getElementAndCheck<HTMLLabelElement>("chatui-info-label");
-    
-    // Get sidebar model select if it exists
-    const sidebarModelSelect = document.getElementById("sidebar-model-select");
-    if (sidebarModelSelect) {
-      this.uiSidebarModelSelect = sidebarModelSelect as HTMLSelectElement;
-    }
+    this.uiSendButton = getElementAndCheck("chatui-send-btn") as HTMLButtonElement; // Save reference
   }
 
   /**
@@ -93,16 +88,31 @@ class ChatUI {
     // Register event handlers
     getElementAndCheck("chatui-reset-btn").onclick = () => chatUI.onReset();
     getElementAndCheck("chatui-send-btn").onclick = () => chatUI.onGenerate();
+    
+    // Add new chat button event handler
+    try {
+      const newChatBtn = getElementAndCheck("chatui-new-chat-btn");
+      newChatBtn.onclick = () => chatUI.createNewSessionWithoutClosingCurrent();
+    } catch (e) {
+      console.warn("New chat button not found in the interface");
+    }
+    
     chatUI.uiChatInput.onkeypress = (event) => {
       if (event.key === "Enter") {
         chatUI.onGenerate();
       }
     };
 
-    // Try to get previously selected model from local storage
-    const savedModelId = ChatUI.getSavedModelId();
+    // Register beforeunload event to save session when closing/refreshing
+    window.addEventListener('beforeunload', () => {
+      if (chatUI.chatHistory.length > 0) {
+        chatUI.autoSaveSession();
+      }
+    });
 
-    // Get device capabilities
+    // Always use the default model.
+    chatUI.selectedModel = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+    
     try {
       const deviceInfo = await chatUI.getDeviceCapabilities(engine);
       if (deviceInfo.restrictModels) {
@@ -111,9 +121,12 @@ class ChatUI {
           "Your device seems to have limited resources, so we restrict the selectable models."
         );
       }
-
-      // Populate and configure model selector
-      chatUI.initializeModelSelector(deviceInfo.restrictModels, deviceInfo.maxStorageBufferBindingSize, savedModelId);
+      
+      // Automatically initialize the model when the app opens
+      await chatUI.asyncInitChat();
+      
+      // Load the most recent chat session if it exists
+      await chatUI.loadLatestSession();
       
       return chatUI;
     } catch (err) {
@@ -144,118 +157,6 @@ class ChatUI {
   }
 
   /**
-   * Initialize and populate the model selector dropdown
-   */
-  private initializeModelSelector(
-    restrictModels: boolean, 
-    maxStorageBufferBindingSize: number, 
-    savedModelId: string | null
-  ): void {
-    const modelSelector = getElementAndCheck<HTMLSelectElement>("chatui-select");
-    let foundSavedModel = false;
-    let lastModelFamily = "";
-    
-    for (const item of this.config.model_list) {
-      // Add separator between different model families
-      const currentModelFamily = item.model_id.split("-")[0];
-      if (lastModelFamily !== currentModelFamily) {
-        if (lastModelFamily !== "") {
-          modelSelector.appendChild(document.createElement("hr"));
-        }
-        lastModelFamily = currentModelFamily;
-      }
-
-      // Create option element
-      const opt = document.createElement("option");
-      opt.value = item.model_id;
-      opt.textContent = item.model_id; // Use textContent instead of innerHTML for security
-
-      // Check if this model should be selected
-      if (savedModelId && item.model_id === savedModelId) {
-        opt.selected = true;
-        foundSavedModel = true;
-      } else {
-        opt.selected = !savedModelId && item === this.config.model_list[0];
-      }
-      
-      // Check if model should be disabled due to device restrictions
-      const shouldDisable = this.shouldDisableModel(item, restrictModels, maxStorageBufferBindingSize);
-      if (shouldDisable) {
-        opt.disabled = true;
-        if (opt.selected) {
-          opt.selected = false;
-          foundSavedModel = false;
-        }
-      }
-      
-      modelSelector.appendChild(opt);
-    }
-    
-    // Add final separator
-    modelSelector.appendChild(document.createElement("hr"));
-
-    // Set the selected model
-    this.selectedModel = modelSelector.value;
-    
-    // Save initial selection if using default and not found saved model
-    if (!foundSavedModel && this.selectedModel) {
-      this.saveSelectedModel(this.selectedModel);
-    }
-    
-    // Add change event handler
-    modelSelector.onchange = () => this.onSelectChange(modelSelector);
-    
-    // Sync with sidebar model selector if it exists
-    if (this.uiSidebarModelSelect) {
-      this.syncSidebarModelSelect(modelSelector);
-    }
-  }
-
-  /**
-   * Sync main model selector with sidebar model selector
-   */
-  private syncSidebarModelSelect(mainSelector: HTMLSelectElement): void {
-    // Clear existing options
-    this.uiSidebarModelSelect.innerHTML = "";
-    
-    // Clone options from main selector
-    Array.from(mainSelector.options).forEach(opt => {
-      const newOpt = document.createElement("option");
-      newOpt.value = opt.value;
-      newOpt.textContent = opt.textContent;
-      newOpt.disabled = opt.disabled;
-      newOpt.selected = opt.selected;
-      
-      this.uiSidebarModelSelect.appendChild(newOpt);
-    });
-    
-    // Add change event handler to sidebar selector
-    this.uiSidebarModelSelect.onchange = () => {
-      mainSelector.value = this.uiSidebarModelSelect.value;
-      this.onSelectChange(mainSelector);
-    };
-  }
-
-  /**
-   * Determine if a model should be disabled based on device capabilities
-   */
-  private shouldDisableModel(
-    model: any, 
-    restrictModels: boolean, 
-    maxStorageBufferBindingSize: number
-  ): boolean {
-    if ((restrictModels && (model.low_resource_required === undefined || !model.low_resource_required)) ||
-        (model.buffer_size_required_bytes && 
-         maxStorageBufferBindingSize < model.buffer_size_required_bytes)) {
-      
-      // Allow bypassing restrictions with URL parameter
-      const params = new URLSearchParams(location.search);
-      return !params.has("bypassRestrictions");
-    }
-    return false;
-  }
-
-  /**
    * Push a task to the execution queue to ensure sequential execution
    */
   private pushTask(task: () => Promise<void>): void {
@@ -269,6 +170,8 @@ class ChatUI {
    */
   private async onGenerate(): Promise<void> {
     if (this.requestInProgress) {
+      // Stop generation if already in progress
+      this.handleInterrupt();
       return;
     }
     this.pushTask(async () => {
@@ -277,21 +180,14 @@ class ChatUI {
   }
 
   /**
-   * Handle model selection change
+   * Handle interruption of text generation
    */
-  private async onSelectChange(modelSelector: HTMLSelectElement): Promise<void> {
-    if (this.requestInProgress) {
-      this.engine.interruptGenerate();
-    }
-    
-    this.pushTask(async () => {
-      await this.engine.resetChat();
-      this.resetChatHistory();
-      await this.unloadChat();
-      this.selectedModel = modelSelector.value;
-      this.saveSelectedModel(this.selectedModel);
-      await this.asyncInitChat();
-    });
+  private handleInterrupt(): void {
+    this.engine.interruptGenerate();
+    this.uiSendButton.innerHTML = '<i data-lucide="send"></i>';
+    this.uiChatInput.setAttribute("placeholder", "Enter your message...");
+    this.requestInProgress = false;
+    refreshIcons(); // Update icon rendering
   }
 
   /**
@@ -303,8 +199,6 @@ class ChatUI {
     }
     this.pushTask(async () => {
       await this.engine.resetChat();
-      // Auto-save the current session before resetting
-      await this.autoSaveSession();
       this.resetChatHistory();
       await this.updateSessionList();
       this.currentSessionId = null; // Reset session id for new chat
@@ -435,7 +329,7 @@ class ChatUI {
     if (this.chatLoaded) return;
     
     this.requestInProgress = true;
-    this.appendMessage("init", "");
+    this.appendMessage("init", ""); // initial progress message
     
     // Setup progress callback
     const initProgressCallback = (report: { text: string }) => {
@@ -446,6 +340,9 @@ class ChatUI {
     try {
       await this.engine.reload(this.selectedModel);
       this.chatLoaded = true;
+      // Update initial message with final notice for the user
+      this.updateLastMessage("init",
+        "Model loaded locally. You can now converse with it offline. Your conversation remains completely private, running entirely on your device.");
     } catch (err) {
       this.appendMessage(
         "error", 
@@ -470,13 +367,16 @@ class ChatUI {
    * Generate response for user input
    */
   private async asyncGenerate(): Promise<void> {
-    // Initialize chat if not already loaded
-    await this.asyncInitChat();
+    this.removeInitialMessage(); // Remove initial message when chatting starts
     this.requestInProgress = true;
-    
+    // Change send button to stop button and refresh icons
+    this.uiSendButton.innerHTML = '<i data-lucide="circle-pause"></i>';
+    refreshIcons(); // Refresh dynamic icon
     const prompt = this.uiChatInput.value.trim();
     if (!prompt) {
       this.requestInProgress = false;
+      this.uiSendButton.innerHTML = '<i data-lucide="send"></i>';
+      refreshIcons();
       return;
     }
 
@@ -502,6 +402,17 @@ class ChatUI {
     } finally {
       this.uiChatInput.setAttribute("placeholder", "Enter your message...");
       this.requestInProgress = false;
+      // Restore send button icon and refresh icons
+      this.uiSendButton.innerHTML = '<i data-lucide="send"></i>';
+      refreshIcons();
+    }
+  }
+
+  // New method to remove initial system message
+  private removeInitialMessage(): void {
+    const initMsgs = this.uiChat.getElementsByClassName("msg init-msg");
+    while (initMsgs.length > 0) {
+      this.uiChat.removeChild(initMsgs[0]);
     }
   }
 
@@ -556,12 +467,38 @@ class ChatUI {
 
   // Save the current chat history as a session in IndexedDB.
   private async saveCurrentSession(): Promise<void> {
-    if (this.chatHistory.length > 0) {
-      try {
-        await addSession({ model: this.selectedModel, history: this.chatHistory, timestamp: Date.now() });
-      } catch (e) {
-        console.error("Failed to save session:", e);
+    // Don't save empty sessions
+    if (this.chatHistory.length === 0) {
+      return;
+    }
+    
+    try {
+      const sessionData = {
+        history: this.chatHistory,
+        model: this.selectedModel,
+        timestamp: new Date().getTime()
+      };
+      
+      if (this.currentSessionId === null) {
+        // Create new session
+        const id = await addSession(sessionData);
+        this.currentSessionId = id;
+        
+        // Save as latest session for next app load
+        localStorage.setItem('latest-session-id', String(id));
+      } else {
+        // Update existing session
+        await updateSession(this.currentSessionId, sessionData);
+        
+        // Save as latest session for next app load only if it's not empty
+        if (this.chatHistory.length > 0) {
+          localStorage.setItem('latest-session-id', String(this.currentSessionId));
+        }
       }
+      
+      await this.updateSessionList();
+    } catch (err) {
+      console.error("Error saving chat session:", err);
     }
   }
 
@@ -579,29 +516,369 @@ class ChatUI {
   private async updateSessionList(): Promise<void> {
     try {
       const sessions = await getSessions();
+      
+      // Sort sessions by timestamp (most recent first)
+      sessions.sort((a, b) => b.timestamp - a.timestamp);
+      
       const listEl = document.getElementById("chat-session-list");
       if (listEl) {
         listEl.innerHTML = "";
+        
+        // Add session management options menu
+        const menuContainer = document.createElement("div");
+        menuContainer.className = "session-menu-container";
+        
+        // Create session options menu
+        const optionsMenu = document.createElement("div");
+        optionsMenu.className = "session-options-menu";
+        
+        // Option 1: Create new chat
+        const newChatOption = this.createMenuOption(
+          "New Chat", 
+          "plus-circle", 
+          () => this.createNewChat()
+        );
+        
+        // Option 2: Reset current session
+        const resetOption = this.createMenuOption(
+          "Reset Current Chat", 
+          "refresh-cw", 
+          () => this.confirmResetCurrentChat()
+        );
+        
+        // Option 3: Delete current session
+        const deleteSessionOption = this.createMenuOption(
+          "Delete Current Session", 
+          "trash-2", 
+          () => this.confirmDeleteCurrentSession()
+        );
+        
+        // Option 4: Delete all sessions
+        const deleteAllOption = this.createMenuOption(
+          "Delete All Sessions", 
+          "trash", 
+          () => this.confirmDeleteAllSessions()
+        );
+        
+        // Add all options to menu
+        optionsMenu.appendChild(newChatOption);
+        optionsMenu.appendChild(resetOption);
+        optionsMenu.appendChild(deleteSessionOption);
+        optionsMenu.appendChild(deleteAllOption);
+        
+        menuContainer.appendChild(optionsMenu);
+        listEl.appendChild(menuContainer);
+        
+        // Add sessions list heading if sessions exist
+        if (sessions.length > 0) {
+          const sessionListHeader = document.createElement("div");
+          sessionListHeader.className = "session-list-header";
+          sessionListHeader.textContent = "Previous Conversations";
+          listEl.appendChild(sessionListHeader);
+        }
+        
+        // Add each session to the list (already sorted)
         sessions.forEach((session: any) => {
+          // Create list item container
           const li = document.createElement("li");
-          li.textContent = new Date(session.timestamp).toLocaleString();
+          li.className = "chat-session-item";
+          
+          // Highlight current session
+          if (this.currentSessionId === session.id) {
+            li.classList.add("active");
+          }
+          
           li.setAttribute("data-session-id", session.id);
-          li.onclick = async () => {
-            const loaded = await loadSessionFromDB(session.id);
-            if (loaded) {
-              this.chatHistory = loaded.history;
-              this.uiChat.innerHTML = "";
-              loaded.history.forEach(msg => {
-                const kind = msg.role === "user" ? "right" : "left";
-                this.appendMessage(kind, msg.content);
-              });
-            }
+          
+          // Create session content wrapper
+          const contentWrapper = document.createElement("div");
+          contentWrapper.className = "session-content";
+          
+          // Find first user message
+          const firstUserMessage = session.history.find((msg: any) => msg.role === "user");
+          const messagePreview = firstUserMessage 
+            ? this.truncateText(typeof firstUserMessage.content === 'string' ? firstUserMessage.content : "No content", 40)
+            : "Empty conversation";
+            
+          // Create preview element
+          const preview = document.createElement("div");
+          preview.className = "session-preview";
+          preview.textContent = messagePreview;
+          
+          // Create timestamp element
+          const timestamp = document.createElement("div");
+          timestamp.className = "session-timestamp";
+          timestamp.textContent = new Date(session.timestamp).toLocaleString();
+          
+          // Create delete button
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "session-delete-btn";
+          deleteBtn.innerHTML = "×"; // × character for delete button
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevent session loading when clicking delete
+            this.confirmDeleteSession(session.id);
           };
+          
+          // Add elements to wrapper
+          contentWrapper.appendChild(preview);
+          contentWrapper.appendChild(timestamp);
+          li.appendChild(contentWrapper);
+          li.appendChild(deleteBtn);
+          
+          // Set click handler for loading the session
+          contentWrapper.onclick = async () => {
+            await this.loadSession(session.id);
+          };
+          
           listEl.appendChild(li);
         });
+        
+        // Refresh icons for the menu items
+        refreshIcons();
       }
     } catch (e) {
       console.error("Failed to update session list:", e);
+    }
+  }
+  
+  /**
+   * Helper method to create a menu option
+   */
+  private createMenuOption(label: string, iconName: string, onClick: () => void): HTMLDivElement {
+    const option = document.createElement("div");
+    option.className = "session-menu-option";
+    
+    const icon = document.createElement("span");
+    icon.className = "session-menu-icon";
+    icon.innerHTML = `<i data-lucide="${iconName}"></i>`;
+    
+    const text = document.createElement("span");
+    text.className = "session-menu-text";
+    text.textContent = label;
+    
+    option.appendChild(icon);
+    option.appendChild(text);
+    option.onclick = onClick;
+    
+    return option;
+  }
+  
+  /**
+   * Creates a new chat session without closing the current one
+   */
+  private async createNewSessionWithoutClosingCurrent(): Promise<void> {
+    this.pushTask(async () => {
+      // Create a new session while keeping the current one
+      this.resetChatHistory(); // Clear UI
+      this.currentSessionId = null; // Reset session ID for new chat
+      await this.engine.resetChat(); // Reset the engine
+      await this.updateSessionList();
+      
+      // Clear the "latest session" from localStorage to ensure a fresh start next time
+      localStorage.removeItem('latest-session-id');
+      
+      // Show initialization message for new chat
+      this.appendMessage("init", "Started a new conversation. Your previous chat is saved in the sidebar.");
+    });
+  }
+
+  /**
+   * Create a new chat session (replacing current)
+   */
+  private createNewChat(): void {
+    this.pushTask(async () => {
+      await this.engine.resetChat();
+      this.resetChatHistory();
+      this.currentSessionId = null;
+      await this.updateSessionList();
+      
+      // Clear the "latest session" from localStorage to ensure a fresh start next time
+      localStorage.removeItem('latest-session-id');
+    });
+  }
+  
+  /**
+   * Show confirmation dialog before resetting current chat
+   */
+  private confirmResetCurrentChat(): void {
+    if (confirm("Are you sure you want to clear all messages in the current conversation?")) {
+      this.pushTask(async () => {
+        await this.engine.resetChat();
+        // Keep the session ID but clear the history
+        if (this.currentSessionId !== null) {
+          this.chatHistory = [];
+          await updateSession(this.currentSessionId, { 
+            model: this.selectedModel, 
+            history: this.chatHistory, 
+            timestamp: Date.now() 
+          });
+        }
+        this.resetChatHistory();
+        await this.updateSessionList();
+      });
+    }
+  }
+  
+  /**
+   * Show confirmation dialog before deleting current session
+   */
+  private confirmDeleteCurrentSession(): void {
+    if (this.currentSessionId === null) {
+      alert("No current session to delete.");
+      return;
+    }
+    
+    if (confirm("Are you sure you want to delete the current conversation?")) {
+      this.deleteSession(this.currentSessionId);
+    }
+  }
+
+  /**
+   * Truncate text and add ellipsis if too long
+   */
+  private truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  }
+  
+  /**
+   * Load a specific chat session
+   */
+  private async loadSession(sessionId: number): Promise<void> {
+    try {
+      const loaded = await loadSessionFromDB(sessionId);
+      if (loaded) {
+        // Update current session and history
+        this.currentSessionId = loaded.id ?? null;
+        this.chatHistory = loaded.history;
+        this.selectedModel = loaded.model || this.selectedModel;
+        
+        // Clear chat UI and display loaded messages
+        this.uiChat.innerHTML = "";
+        loaded.history.forEach(msg => {
+          const kind = msg.role === "user" ? "right" : "left";
+          this.appendMessage(kind, typeof msg.content === 'string' ? msg.content : String(msg.content || ''));
+        });
+      }
+    } catch (err) {
+      console.error("Error loading chat session:", err);
+    }
+  }
+  
+  /**
+   * Show confirmation dialog before deleting a session
+   */
+  private confirmDeleteSession(sessionId: number): void {
+    if (confirm("Are you sure you want to delete this conversation?")) {
+      this.deleteSession(sessionId);
+    }
+  }
+  
+  /**
+   * Delete a specific chat session
+   */
+  private async deleteSession(sessionId: number): Promise<void> {
+    try {
+      await deleteSession(sessionId);
+      
+      // If we deleted the current session, reset the UI
+      if (this.currentSessionId === sessionId) {
+        this.resetChatHistory();
+        this.currentSessionId = null;
+        await this.engine.resetChat();
+      }
+      
+      // If we're deleting what was saved as the latest session, remove that reference
+      const latestSessionId = localStorage.getItem('latest-session-id');
+      if (latestSessionId === String(sessionId)) {
+        localStorage.removeItem('latest-session-id');
+      }
+      
+      await this.updateSessionList();
+    } catch (err) {
+      console.error("Error deleting session:", err);
+      this.appendMessage("error", "Failed to delete session: " + err.message);
+    }
+  }
+  
+  /**
+   * Show confirmation dialog before deleting all sessions
+   */
+  private confirmDeleteAllSessions(): void {
+    if (confirm("Are you sure you want to delete ALL conversations? This cannot be undone.")) {
+      this.deleteAllSessions();
+    }
+  }
+  
+  /**
+   * Delete all chat sessions
+   */
+  private async deleteAllSessions(): Promise<void> {
+    try {
+      await deleteAllSessions();
+      
+      // Reset current UI state
+      this.resetChatHistory();
+      this.currentSessionId = null;
+      
+      // Update the session list
+      await this.updateSessionList();
+    } catch (err) {
+      console.error("Error deleting all sessions:", err);
+    }
+  }
+
+  /**
+   * Load the most recent chat session if available
+   */
+  private async loadLatestSession(): Promise<void> {
+    try {
+      // First check if we have a specific session ID stored
+      const latestSessionId = localStorage.getItem('latest-session-id');
+      
+      // If we have a stored session ID, try to load it specifically
+      if (latestSessionId) {
+        const session = await loadSessionFromDB(Number(latestSessionId));
+        if (session && session.history.length > 0) {
+          this.currentSessionId = session.id;
+          this.chatHistory = session.history;
+          this.selectedModel = session.model || this.selectedModel;
+          
+          // Display the chat history in UI
+          this.uiChat.innerHTML = ""; // Clear any initial messages
+          this.chatHistory.forEach(msg => {
+            const kind = msg.role === "user" ? "right" : "left";
+            this.appendMessage(kind, typeof msg.content === 'string' ? msg.content : String(msg.content || ''));
+          });
+          
+          // Update session list in sidebar if present
+          await this.updateSessionList();
+          return; // Successfully loaded session, exit function
+        }
+      }
+      
+      // If no valid session was loaded, get the latest session from database
+      const latestSession = await getLatestSession();
+      if (latestSession && latestSession.history.length > 0) {
+        this.currentSessionId = latestSession.id;
+        this.chatHistory = latestSession.history;
+        this.selectedModel = latestSession.model || this.selectedModel;
+        
+        // Display the chat history in UI
+        this.uiChat.innerHTML = ""; // Clear any initial messages
+        this.chatHistory.forEach(msg => {
+          const kind = msg.role === "user" ? "right" : "left";
+          this.appendMessage(kind, typeof msg.content === 'string' ? msg.content : String(msg.content || ''));
+        });
+        
+        // Update session list in sidebar if present
+        await this.updateSessionList();
+        
+        // Save this as the latest session ID
+        localStorage.setItem('latest-session-id', String(latestSession.id));
+      }
+    } catch (err) {
+      console.error("Error loading chat session:", err);
     }
   }
 }
