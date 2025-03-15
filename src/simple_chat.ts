@@ -2,6 +2,9 @@ import appConfig from "./app-config";
 import * as webllm from "@mlc-ai/web-llm";
 import { refreshIcons } from "./icons"; // Import the icon refresh function
 import { addSession, getSessions, loadSession as loadSessionFromDB, updateSession, getLatestSession, deleteSession, deleteAllSessions } from "./chat-session-db";
+import { marked } from "marked";
+// Remove direct import and use the globally available KaTeX from CDN
+// import renderMathInElement from "/katex/contrib/auto-render.min.js";
 
 // Constants
 const SELECTED_MODEL_KEY = "web-llm-selected-model";
@@ -35,7 +38,7 @@ class ChatUI {
   private readonly config: webllm.AppConfig = appConfig;
   private readonly uiSendButton: HTMLButtonElement;  // New property for send/stop button
   
-  private selectedModel: string = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"; // Default model
+  private selectedModel: string = "gemma-3-1b-it-q4f16_1-MLC"; // Default model
   private chatLoaded = false;
   private requestInProgress = false;
   private chatHistory: webllm.ChatCompletionMessageParam[] = [];
@@ -206,6 +209,35 @@ class ChatUI {
   }
 
   /**
+   * Process message content with Markdown and LaTeX
+   */
+  private processMessageContent(content: string): string {
+    // First parse the markdown - ensure it returns string not Promise<string>
+    const htmlContent = marked.parse(content, { async: false }) as string;
+    
+    // Create a temporary div to hold the content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    // Use the globally available renderMathInElement from KaTeX CDN
+    if (typeof window.renderMathInElement === 'function') {
+      window.renderMathInElement(tempDiv, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\(', right: '\\)', display: false},
+          {left: '\\[', right: '\\]', display: true}
+        ],
+        throwOnError: false
+      });
+    } else {
+      console.warn("KaTeX renderMathInElement is not available");
+    }
+    
+    return tempDiv.innerHTML;
+  }
+
+  /**
    * Append a system/assistant message to the chat
    */
   private appendMessage(kind: MessageKind, text: string): void {
@@ -217,10 +249,13 @@ class ChatUI {
       throw Error("Chat UI element not found");
     }
     
+    // Process with Markdown and LaTeX if it's an assistant (left) message
+    const processedText = (kind === "left") ? this.processMessageContent(text) : text;
+    
     const msg = `
       <div class="msg ${kind}-msg">
         <div class="msg-bubble">
-          <div class="msg-text">${text}</div>
+          <div class="msg-text">${processedText}</div>
         </div>
       </div>
     `;
@@ -281,15 +316,20 @@ class ChatUI {
     
     if (msgText[0].innerHTML === text) return;
     
-    // Split text by newlines and create elements for each line
-    const list = text.split("\n").map(line => {
-      const item = document.createElement("div");
-      item.textContent = line;
-      return item;
-    });
-    
-    msgText[0].innerHTML = "";
-    list.forEach(item => msgText[0].append(item));
+    // Process with Markdown and LaTeX if it's an assistant (left) message
+    if (kind === "left") {
+      msgText[0].innerHTML = this.processMessageContent(text);
+    } else {
+      // Split text by newlines and create elements for each line
+      const list = text.split("\n").map(line => {
+        const item = document.createElement("div");
+        item.textContent = line;
+        return item;
+      });
+      
+      msgText[0].innerHTML = "";
+      list.forEach(item => msgText[0].append(item));
+    }
     
     this.scrollChatToBottom();
   }

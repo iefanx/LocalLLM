@@ -135,6 +135,134 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* Markdown and LaTeX styling */
+.msg-bubble {
+  border-radius: var(--border-radius);
+  padding: 0.6rem 0.8rem; /* Reduced padding */
+  margin: 3px auto; /* Reduced margin */
+  width: calc(100% - 12px); /* Reduced width */
+  box-sizing: border-box;
+  font-size: var(--font-size-normal);
+  line-height: 1.4; /* Tighter line height */
+  color: var(--text-color);
+  box-shadow: var(--shadow);
+}
+
+/* Markdown styling within message bubbles */
+.msg-bubble h1, 
+.msg-bubble h2, 
+.msg-bubble h3, 
+.msg-bubble h4, 
+.msg-bubble h5, 
+.msg-bubble h6 {
+  margin-top: 0.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.msg-bubble h1 { font-size: 1.5rem; }
+.msg-bubble h2 { font-size: 1.3rem; }
+.msg-bubble h3 { font-size: 1.15rem; }
+.msg-bubble h4 { font-size: 1rem; }
+.msg-bubble h5 { font-size: 0.9rem; }
+.msg-bubble h6 { font-size: 0.85rem; }
+
+.msg-bubble p {
+  margin-bottom: 0.8rem;
+}
+
+.msg-bubble a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.msg-bubble a:hover {
+  text-decoration: underline;
+}
+
+.msg-bubble ul, 
+.msg-bubble ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.8rem;
+  padding-left: 1.5rem;
+}
+
+.msg-bubble li {
+  margin-bottom: 0.3rem;
+}
+
+.msg-bubble pre {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 0.8rem;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+}
+
+.msg-bubble code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.3rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.msg-bubble pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+.msg-bubble blockquote {
+  border-left: 3px solid var(--accent-color);
+  padding-left: 0.8rem;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.msg-bubble img {
+  max-width: 100%;
+  border-radius: var(--border-radius);
+}
+
+.msg-bubble table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 0.8rem;
+}
+
+.msg-bubble th,
+.msg-bubble td {
+  border: 1px solid var(--tertiary-bg);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+
+.msg-bubble th {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* LaTeX styling */
+.katex {
+  font-size: 1.1rem;
+}
+
+.katex-display {
+  margin: 0.8rem 0;
+  overflow-x: auto;
+}
+
+/* Mobile adjustments for Markdown content */
+@media (max-width: 768px) {
+  .msg-bubble h1 { font-size: 1.3rem; }
+  .msg-bubble h2 { font-size: 1.15rem; }
+  .msg-bubble h3 { font-size: 1.05rem; }
+  .msg-bubble pre { padding: 0.6rem; }
+  .katex { font-size: 1rem; }
+}
+
 .left-msg .msg-bubble {
   background-color: var(--tertiary-bg);
   border-bottom-left-radius: 4px;
