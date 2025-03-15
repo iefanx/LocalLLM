@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Web-LLM Chat Interface">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <title>Web-LLM Chat</title>
+  <link href="./llm_chat.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+      <button id="sidebar-close" aria-label="Close menu">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="sidebar-content">
+      <div class="sidebar-section">
+        <h4>Model Selection</h4>
+        <select id="sidebar-model-select" aria-label="Select AI model" class="sidebar-select"></select>
+      </div>
+      <div class="sidebar-section">
+        <h4>Options</h4>
+        <button id="sidebar-reset-btn" class="sidebar-btn" aria-label="Reset conversation">
+          <i data-lucide="eraser"></i> Reset Conversation
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <h4>Chat Sessions</h4>
+        <ul id="chat-session-list">
+          <!-- Sessions will be dynamically populated -->
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <main class="chatui">
+    <div class="chatui-select-wrapper">
+      <button id="menu-btn" class="menu-btn" aria-label="Open menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <select id="chatui-select" aria-label="Select AI model"></select>
+      <button id="chatui-reset-btn" class="chatui-reset-btn" aria-label="Reset conversation"> 
+        <i data-lucide="eraser"></i>
+      </button>
+    </div>
+    <div class="chatui-chat" id="chatui-chat"></div>
+    <label id="chatui-info-label" aria-live="polite" class="hidden"> </label>
+
+    <div class="chatui-inputarea">
+      <input
+        id="chatui-input"
+        type="text"
+        class="chatui-input"
+        placeholder="Enter your message..."
+        aria-label="Message input"
+      />
+      <button id="chatui-send-btn" class="chatui-send-btn" aria-label="Send message"> 
+        <i data-lucide="send"></i>
+      </button>
+    </div>
+  </main>
+
+  <div class="chatui-extra-control">
+    <label id="chatui-info-label" aria-live="polite"></label>
+  </div>
+  
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Setup sidebar functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuBtn = document.getElementById('menu-btn');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebar-overlay');
+      const sidebarClose = document.getElementById('sidebar-close');
+      const sidebarModelSelect = document.getElementById('sidebar-model-select');
+      const mainModelSelect = document.getElementById('chatui-select');
+      const sidebarResetBtn = document.getElementById('sidebar-reset-btn');
+      const mainResetBtn = document.getElementById('chatui-reset-btn');
+      
+      // Function to open sidebar
+      const openSidebar = () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('visible');
+        document.body.classList.add('sidebar-active');
+      };
+      
+      // Function to close sidebar
+      const closeSidebar = () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('visible');
+        document.body.classList.remove('sidebar-active');
+      };
+      
+      // Sync model options between main and sidebar selects
+      const syncModelOptions = () => {
+        // Clone options from main select to sidebar select
+        sidebarModelSelect.innerHTML = mainModelSelect.innerHTML;
+        sidebarModelSelect.value = mainModelSelect.value;
+      };
+      
+      // Event Listeners
+      menuBtn.addEventListener('click', () => {
+        openSidebar();
+        syncModelOptions(); // Sync options when opening
+      });
+      
+      sidebarClose.addEventListener('click', closeSidebar);
+      sidebarOverlay.addEventListener('click', closeSidebar);
+      
+      // Sync model selection from sidebar to main
+      sidebarModelSelect.addEventListener('change', () => {
+        mainModelSelect.value = sidebarModelSelect.value;
+        // Trigger change event on the main select
+        const event = new Event('change');
+        mainModelSelect.dispatchEvent(event);
+      });
+      
+      // Make the sidebar reset button work
+      sidebarResetBtn.addEventListener('click', () => {
+        mainResetBtn.click();
+        closeSidebar();
+      });
+    });
+  </script>
+  
+  <!-- Place script after UI to ensure DOM elements are loaded first -->
+  <script type="module" src="./simple_chat.ts"></script>
+</body>
+</html>

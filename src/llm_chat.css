@@ -1,0 +1,528 @@
+:root {
+  --bg-color: #0a0a0c;
+  --secondary-bg: #121218;
+  --tertiary-bg: #1a1a22;
+  --input-bg: #1e1e28;
+  --text-color: #f0f0f0;
+  --text-secondary: #9e9ea4;
+  --accent-color: #6c5ce7;
+  --accent-hover: #5649c0;
+  --error-color: #e74c3c;
+  --border-radius: 8px; /* Reduced from 12px for a more compact look */
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Reduced shadow for cleaner look */
+  --transition: all 0.2s ease; /* Faster transitions for snappier feel */
+  --compact-padding: 0.5rem; /* New variable for consistent compact padding */
+  --font-size-normal: 0.9rem; /* Default font size */
+  --font-size-small: 0.75rem; /* Small font size */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.chatui {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  height: 100vh;
+  background-color: var(--bg-color);
+  padding: var(--compact-padding); /* Reduced padding */
+  margin: 0 auto;
+}
+
+.chatui-select-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--compact-padding);
+  padding: var(--compact-padding);
+  background-color: var(--secondary-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+#chatui-select {
+  width: auto;
+  max-width: 350px;
+  background-color: var(--secondary-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.5rem 0.75rem; /* Reduced padding */
+  appearance: none;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-grow: 1;
+  margin-right: 8px; /* Reduced margin */
+  font-size: var(--font-size-small);
+}
+
+#chatui-select:focus {
+  outline: 1px solid var(--accent-color);
+}
+
+#chatui-select option {
+  background-color: var(--secondary-bg);
+  color: var(--text-color);
+  padding: 0.5rem; /* Reduced padding */
+}
+
+.chatui-chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--compact-padding);
+  background-color: var(--secondary-bg);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  scroll-behavior: smooth;
+  margin-bottom: 0;
+}
+
+.chatui-chat::-webkit-scrollbar {
+  width: 4px; /* Thinner scrollbar */
+}
+
+.chatui-chat::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+}
+
+.chatui-chat::-webkit-scrollbar-thumb {
+  background: #333340;
+  border-radius: 10px;
+}
+
+.chatui-chat::-webkit-scrollbar-thumb:hover {
+  background: #444450;
+}
+
+.msg {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0.6rem; /* Reduced margin */
+  animation: fadeIn 0.2s ease; /* Faster animation */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); } /* Reduced movement */
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg:last-of-type {
+  margin: 0;
+}
+
+.msg-bubble {
+  border-radius: var(--border-radius);
+  padding: 0.6rem 0.8rem; /* Reduced padding */
+  margin: 3px auto; /* Reduced margin */
+  width: calc(100% - 12px); /* Reduced width */
+  box-sizing: border-box;
+  font-size: var(--font-size-normal);
+  line-height: 1.4; /* Tighter line height */
+  color: var(--text-color);
+  box-shadow: var(--shadow);
+}
+
+.left-msg .msg-bubble {
+  background-color: var(--tertiary-bg);
+  border-bottom-left-radius: 4px;
+}
+
+.right-msg .msg-bubble {
+  background-color: var(--accent-color);
+  border-bottom-right-radius: 4px;
+}
+
+.error-msg .msg-bubble {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+
+.init-msg .msg-bubble {
+  background-color: var(--tertiary-bg);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.chatui-inputarea {
+  display: flex;
+  padding: var(--compact-padding);
+  background-color: var(--secondary-bg);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.chatui-input {
+  flex: 1;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  padding: 0.6rem 0.8rem; /* Reduced padding */
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-normal);
+  transition: var(--transition);
+  border: none; /* Added to clean up appearance */
+}
+
+.chatui-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent-color); /* Thinner focus ring */
+}
+
+.chatui-reset-btn,
+.chatui-send-btn {
+  margin-left: 0.5rem; /* Reduced margin */
+  background-color: var(--tertiary-bg);
+  color: var(--text-color);
+  font-weight: bold;
+  cursor: pointer;
+  width: 36px; /* Smaller buttons */
+  height: 36px; /* Smaller buttons */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  border: none;
+  padding: 0;
+}
+
+.chatui-reset-btn svg,
+.chatui-send-btn svg {
+  width: 18px; /* Smaller icons */
+  height: 18px;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.chatui-reset-btn:hover,
+.chatui-send-btn:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.chatui-reset-btn:hover svg,
+.chatui-send-btn:hover svg {
+  color: white; /* Use color instead of stroke */
+}
+
+.chatui-reset-btn:active,
+.chatui-send-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .chatui {
+    padding: 0.3rem; /* Even more compact on mobile */
+    height: 100vh;
+    width: 100%;
+  }
+  
+  .chatui-select-wrapper {
+    padding: 0.3rem 0.5rem;
+  }
+  
+  .chatui-reset-btn {
+    height: 32px; /* Smaller button on mobile */
+    width: 32px;
+  }
+  
+  .chatui-reset-btn svg,
+  .chatui-send-btn svg {
+    width: 16px; /* Smaller icons on mobile */
+    height: 16px;
+  }
+  
+  #chatui-select {
+    max-width: 75%;
+    font-size: 0.7rem; /* Smaller font on mobile */
+    padding: 4px 8px;
+    font-weight: 600;
+    border: none;
+    background-color: var(--tertiary-bg);
+  }
+  
+  .msg-bubble {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+    width: calc(100% - 8px);
+    margin: 2px auto;
+  }
+  
+  .chatui-inputarea {
+    padding: 0.4rem;
+  }
+  
+  .chatui-input {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .msg {
+    margin-bottom: 0.4rem;
+  }
+}
+
+#chatui-info-label {
+  font-size: 0.6rem;
+  color: var (--text-secondary);
+  margin-bottom: 0.3rem; /* Reduced margin */
+  opacity: 0.8; /* Slightly more subtle */
+}
+
+/* Added for improved interactive feel */
+.chatui-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.chatui-reset-btn:active,
+.chatui-send-btn:active {
+  transform: scale(0.95); /* More tactile feedback */
+  background-color: var(--accent-color);
+}
+
+/* Add subtle transitions for more professional feel */
+.chatui-chat, .msg-bubble {
+  transition: background-color 0.2s ease;
+}
+
+#chatui-info-label{
+  display: none;
+}
+
+/* Menu button styling */
+.menu-btn {
+  background-color: transparent;
+  color: var(--text-color);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-right: 8px;
+}
+
+.menu-btn:hover {
+  background-color: var(--tertiary-bg);
+}
+
+/* Sidebar Component */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -280px; /* Start off-screen */
+  width: 270px;
+  height: 100vh;
+  background-color: var(--secondary-bg);
+  box-shadow: var(--shadow);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  padding: var(--compact-padding);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0; /* Move on-screen */
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem var(--compact-padding);
+  border-bottom: 1px solid var(--tertiary-bg);
+  margin-bottom: 1rem;
+}
+
+.sidebar-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.sidebar-close {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+#sidebar-close {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sidebar-close:hover {
+  background-color: var(--tertiary-bg);
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  margin-bottom: 1rem;
+  padding: 0 var(--compact-padding);
+}
+
+.sidebar-section h4 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-select {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: var(--tertiary-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-small);
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem;
+  background-color: var(--tertiary-bg);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: var(--font-size-small);
+  transition: var(--transition);
+}
+
+.sidebar-btn:hover {
+  background-color: var(--accent-color);
+}
+
+.sidebar-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+  opacity: 1;
+}
+
+/* Hide the extra info label unless needed */
+#chatui-info-label {
+  display: none;
+}
+
+/* Prevent body scrolling when sidebar is open */
+body.sidebar-active {
+  overflow: hidden;
+}
+
+/* Adjust existing components for better mobile experience */
+@media (max-width: 768px) {
+  /* ...existing mobile code... */
+  
+  /* Show menu button clearly on mobile */
+  .menu-btn {
+    display: flex;
+  }
+  
+  /* Make the main model selector smaller on mobile */
+  #chatui-select {
+    max-width: 60%;
+  }
+  
+  /* When sidebar is open, slightly dim the main chat */
+  body.sidebar-active .chatui {
+    opacity: 0.8;
+  }
+}
+
+/* For larger screens, make sidebar always visible and adjust layout */
+@media (min-width: 1024px) {
+  .menu-btn {
+    display: none; /* Hide menu button on large screens */
+  }
+  
+  /* Optional: For desktop you could make the sidebar always visible */
+  /* 
+  .sidebar {
+    left: 0;
+    width: 220px;
+  }
+  
+  .chatui {
+    margin-left: 220px;
+    max-width: calc(800px - 220px);
+  }
+  */
+}
+
+#chat-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#chat-session-list li {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--tertiary-bg);
+}
+
+#chat-session-list li:hover {
+  background-color: var(--accent-hover);
+}
